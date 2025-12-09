@@ -171,40 +171,6 @@ const styles = {
 };
 
 const PROMPTS = {
-  gemini2p5: `
-Create a polished, retro-futuristic 3D spaceship web game contained entirely within a single HTML file using Three.js. The game should feature a "Synthwave/Retrowave" aesthetic with the following specifications:
-
-### 1. Visual Style & Atmosphere
-*   **Aesthetic:** Dark, immersive 3D environment with a glowing, volumetric neon look. Use a color palette of deep purples, hot pinks, and electric cyans.
-*   **Post-Processing:** You must implement Three.js EffectComposer with UnrealBloomPass to make the neon elements glow intensely.
-*   **Environment:** 
-    *   A dense, moving starfield background with rich features. Go beyond simple plane shapes here and apply shaders to make the game visually appealing. For example, simulating retro astra, stars, and planets in the background.
-    *   Distance fog to fade distant objects smoothly into the darkness.
-*   **Assets:** Use complex geometric primitives constructed programmatically (no external model imports).
-
-### 2. Gameplay Mechanics
-*   **Perspective:** Third-person view from behind the spaceship.
-*   **Core Loop:** The player pilots the ship on the X and Y axis (2D plane) while enemies (neon blocks) spawn in the distance and fly toward the camera along the Z-axis.
-*   **Combat:** 
-    *   The player shoots laser bolts (glowing lines) to destroy enemies.
-    *   **Collision:** When a laser hits a block, the block should shatter into a very complex particle explosion effect.
-    *   **Game Over:** If a block hits the ship, the game ends.
-*   **UI:** A minimal HUD displaying the current Score. A "Game Over" overlay with a "Restart" button.
-
-### 3. Controls (Cross-Platform)
-The game must detect the device type or input method:
-*   **Desktop/Web:** 
-    *   Use **Arrow Keys** or **WASD** for smooth movement (apply lerp or friction for a floaty, drift-like spaceship feel).
-    *   Use **Spacebar** to fire.
-*   **Mobile/Touch:** 
-    *   Render a semi-transparent **Virtual Joystick** on the bottom-left of the screen (using HTML/CSS or Canvas API) to map touch movement to ship coordinates.
-    *   Detect a **Tap** anywhere on the right side of the screen to fire lasers.
-
-### 4. Technical Constraints
-*   **Single File:** All HTML, CSS, and JavaScript (including the Three.js library and post-processing shaders imported via CDN) must be in one index.html file. Do not output any other text other than the html response.
-*   **Performance:** Use object pooling for lasers and particles to ensure 60FPS performance.
-*   **Responsiveness:** The canvas must resize dynamically to fit any screen size without stretching the aspect ratio.
-`,
   gemini3: `
 Create a classic "1945" style vertical scrolling shooter game (shmup) in a single HTML file using HTML5 Canvas.
 
@@ -237,7 +203,6 @@ Create a classic "1945" style vertical scrolling shooter game (shmup) in a singl
 };
 
 function App() {
-  const [activeModel, setActiveModel] = useState('gemini3'); 
   const [showPrompt, setShowPrompt] = useState(false);
   const [showRemix, setShowRemix] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(true);
@@ -249,14 +214,6 @@ function App() {
   const htmlCache = useRef<{ [key: string]: string }>({});
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const switchModel = (model: string) => {
-    if (activeModel === model) return;
-    setGameHtml(null);
-    setIsLoading(true);
-    setLoadingText('Initializing System...');
-    setActiveModel(model);
-  };
-
   useEffect(() => {
     // Send pause command to iframe whenever disclaimer visibility changes
     const iframe = iframeRef.current;
@@ -267,7 +224,7 @@ function App() {
 
   useEffect(() => {
     let isMounted = true;
-    const url = activeModel === 'gemini3' ? './init/gemini3.html' : './init/gemini2p5.html';
+    const url = './init/gemini3.html';
 
     const loadGame = async () => {
       // If we have a cached version (original) and we haven't remixed yet (simplification: cache only stores original)
@@ -313,7 +270,7 @@ function App() {
     return () => {
       isMounted = false;
     };
-  }, [activeModel]);
+  }, []);
 
   const handleRemixAction = async (modification: string) => {
     if (!gameHtml) return;
@@ -327,10 +284,9 @@ function App() {
         
         // Select model based on active mode
         // Use 'gemini-3-pro-preview' for gemini3 (3 Pro) mode.
-        // Use 'gemini-2.5-pro' for gemini2p5 (2.5 Pro) mode.
-        const modelId = activeModel === 'gemini3' ? 'gemini-3-pro-preview' : 'gemini-2.5-pro';
+        const modelId = 'gemini-3-pro-preview';
         
-        const currentPrompt = PROMPTS[activeModel as keyof typeof PROMPTS];
+        const currentPrompt = PROMPTS.gemini3;
 
         const systemInstruction = `
 You are an expert Creative Technologist and Web Game Developer.
@@ -410,18 +366,7 @@ window.addEventListener('message', (e) => {
       {/* Header Control Bar */}
       <div style={styles.header}>
         <div style={styles.buttonGroup}>
-          <button 
-            style={styles.button(activeModel === 'gemini2p5')}
-            onClick={() => switchModel('gemini2p5')}
-          >
-            2.5 Pro
-          </button>
-          <button 
-            style={styles.button(activeModel === 'gemini3')}
-            onClick={() => switchModel('gemini3')}
-          >
-            3 Pro
-          </button>
+          {/* Model switcher removed */}
         </div>
 
         <div style={styles.buttonGroup}>
@@ -453,7 +398,7 @@ window.addEventListener('message', (e) => {
         {!isLoading && gameHtml && (
           <iframe 
             ref={iframeRef}
-            key={activeModel + gameHtml.length} // Force re-render on content change
+            key={'gemini3' + gameHtml.length} // Force re-render on content change
             srcDoc={gameHtml}
             style={styles.iframe} 
             title="Game Canvas"
@@ -470,7 +415,7 @@ window.addEventListener('message', (e) => {
             <h2 style={styles.modalHeader}>Mission Briefing</h2>
             <div style={{...styles.modalSub, fontSize: '15px', color: '#ccc'}}>
               <p style={{marginBottom: '12px'}}>
-                <strong>Objective:</strong> {activeModel === 'gemini3' ? 'Fly your fighter plane through enemy territory. Shoot down enemy aircraft and survive.' : 'Pilot your ship through the neon void. Destroy enemies to achieve the highest score.'}
+                <strong>Objective:</strong> Fly your fighter plane through enemy territory. Shoot down enemy aircraft and survive.
               </p>
 
               <p style={{marginBottom: '16px'}}>
@@ -500,7 +445,7 @@ window.addEventListener('message', (e) => {
             <h2 style={styles.modalHeader}>Underlying Prompt</h2>
             <p style={styles.modalSub}>The instructions used to one-shot generate this game.</p>
             <div style={styles.promptBox}>
-              {PROMPTS[activeModel as keyof typeof PROMPTS]}
+              {PROMPTS.gemini3}
             </div>
             <button style={styles.closeBtn} onClick={() => setShowPrompt(false)}>Close</button>
           </div>
